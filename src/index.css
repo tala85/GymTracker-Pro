@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #10b981;
+  --color-primary-dark: #059669;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background-color: #f3f4f6;
+  color: #111827;
+  overscroll-behavior-y: none;
+}
+
+.dark body {
+  background-color: #0f172a;
+  color: #f9fafb;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
