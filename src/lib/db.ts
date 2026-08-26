@@ -1,7 +1,7 @@
 import { openDB, type IDBPDatabase } from 'idb'
 
 const DB_NAME = 'gymtracker-db'
-const DB_VERSION = 2
+const DB_VERSION = 3
 
 const STORE_NAMES = [
   'routines',
@@ -16,6 +16,7 @@ const STORE_NAMES = [
   'settings',
   'syncQueue',
   'photos',
+  'wellness',
 ]
 
 let dbPromise: Promise<IDBPDatabase> | null = null

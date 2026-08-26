@@ -157,3 +157,17 @@ export interface ProgressPhoto {
   dataUrl: string
   createdAt: string
 }
+
+export interface WellnessDay {
+  id: string
+  date: string
+  waterGlasses: number
+  sleepHours: number
+  sunMinutes: number
+  nutritionGood: boolean
+  temperanceGood: boolean
+  airGood: boolean
+  trustDone: boolean
+  exerciseManual: boolean
+  note?: string
+}

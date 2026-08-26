@@ -12,6 +12,7 @@ const STORES = [
   'links',
   'settings',
   'photos',
+  'wellness',
 ]
 
 export async function collectAllData(): Promise<string> {

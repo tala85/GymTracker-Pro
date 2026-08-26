@@ -1,8 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Flag, History, Plus, Trash2, X } from "lucide-react";
+import {
+  Check,
+  Flag,
+  History,
+  Minus,
+  Plus,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useWorkoutStore } from "../../stores/workoutStore";
+import { analyzeSession, type CoachSuggestion } from "../../utils/coach";
 import { ExercisePickerModal } from "../../components/domain/ExercisePickerModal";
 import { Button } from "../../components/ui/Button";
 import { Modal } from "../../components/ui/Modal";
@@ -41,10 +52,12 @@ export function WorkoutActivePage() {
   const copyPrevious = useWorkoutStore((state) => state.copyPrevious);
   const discard = useWorkoutStore((state) => state.discard);
   const finish = useWorkoutStore((state) => state.finish);
+  const saveSuggestions = useWorkoutStore((state) => state.saveSuggestions);
 
   const [showPicker, setShowPicker] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [showDiscard, setShowDiscard] = useState(false);
+  const [suggestions, setSuggestions] = useState<CoachSuggestion[]>([]);
   const [now, setNow] = useState(0);
 
   useEffect(() => {
@@ -85,6 +98,7 @@ export function WorkoutActivePage() {
   );
 
   const handleFinish = async () => {
+    await saveSuggestions(suggestions);
     await finish();
     toast.success(
       `Entrenamiento guardado: ${completedSets} series · ${volume.toLocaleString()} kg`,
@@ -110,7 +124,13 @@ export function WorkoutActivePage() {
           >
             <Trash2 size={15} />
           </Button>
-          <Button size="sm" onClick={() => setShowSummary(true)}>
+          <Button
+            size="sm"
+            onClick={() => {
+              setSuggestions(analyzeSession(active.exercises));
+              setShowSummary(true);
+            }}
+          >
             <Flag size={15} /> Terminar
           </Button>
         </div>
@@ -245,6 +265,38 @@ export function WorkoutActivePage() {
             <p className="text-xs text-gray-500">Kg totales</p>
           </div>
         </div>
+
+        {suggestions.length > 0 && (
+          <div className="mb-4 flex flex-col gap-2">
+            <p className="text-sm font-bold">El coach sugiere:</p>
+            {suggestions.map((s) => (
+              <div
+                key={s.exerciseId}
+                className="rounded-lg bg-slate-100 p-2 dark:bg-slate-700"
+              >
+                <p className="flex items-center gap-1.5 text-xs font-semibold">
+                  {s.action === "subir" && (
+                    <TrendingUp size={13} className="text-emerald-500" />
+                  )}
+                  {s.action === "bajar" && (
+                    <TrendingDown size={13} className="text-red-400" />
+                  )}
+                  {s.action === "mantener" && (
+                    <Minus size={13} className="text-gray-400" />
+                  )}
+                  {s.name}:{" "}
+                  {s.action === "mantener"
+                    ? "mantener peso"
+                    : `${s.deltaKg > 0 ? "+" : ""}${s.deltaKg} kg`}
+                </p>
+                <p className="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
+                  {s.reason}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
         {completedSets === 0 && (
           <p className="mb-3 text-center text-xs text-red-500">
             Completá al menos una serie para guardar.

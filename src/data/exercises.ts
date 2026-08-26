@@ -108,4 +108,9 @@ export const SYSTEM_EXERCISES: Exercise[] = [
   e('Elíptica', 'Cardio', 'cardio', 'maquina', 'principiante', [], ['cardio']),
   e('Remo ergómetro', 'Cardio', 'cardio', 'maquina', 'intermedio', [], ['cardio']),
   e('Saltar la cuerda', 'Cardio', 'cardio', 'otro', 'intermedio', [], ['cardio']),
+    // Trapecio
+  e('Encogimientos con barra', 'Trapecio', 'otro', 'barra', 'principiante', [], ['aislamiento']),
+  e('Encogimientos con mancuernas', 'Trapecio', 'otro', 'mancuernas', 'principiante', [], ['aislamiento', 'unilateral']),
+  e('Encogimientos en máquina', 'Trapecio', 'otro', 'maquina', 'principiante', [], ['aislamiento']),
+  e('Remo al mentón', 'Trapecio', 'tiron', 'barra', 'intermedio', ['Hombros', 'Bíceps'], ['compuesto']),
 ]

@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { ExternalLink, Link2, Star } from 'lucide-react'
+import { ExternalLink, Link2, ShieldCheck, Star, TriangleAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Exercise } from '../../types'
 import { Modal } from '../../components/ui/Modal'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { YouTubeEmbed } from '../../components/domain/YouTubeEmbed'
+import { MuscleMap } from '../../components/domain/MuscleMap'
 import { useExerciseStore } from '../../stores/exerciseStore'
+import { getTechnique } from '../../data/technique'
 import { DIFFICULTY_LABELS, EQUIPMENT_LABELS, PATTERN_LABELS } from '../../utils/labels'
 
 interface ExerciseDetailModalProps {
@@ -20,6 +22,8 @@ export function ExerciseDetailModal({ exercise, onClose, onToggleFavorite }: Exe
   const [newVideo, setNewVideo] = useState('')
 
   if (!exercise) return null
+
+  const technique = getTechnique(exercise)
 
   const saveVideo = async () => {
     const url = newVideo.trim()
@@ -57,6 +61,28 @@ export function ExerciseDetailModal({ exercise, onClose, onToggleFavorite }: Exe
           </span>
         </div>
 
+        <MuscleMap primary={exercise.primaryMuscle} secondary={exercise.secondaryMuscles} />
+
+        <div className="rounded-lg bg-slate-100 p-3 dark:bg-slate-700/50">
+          <p className="mb-1.5 flex items-center gap-1.5 text-xs font-bold">
+            <ShieldCheck size={14} className="text-emerald-500" /> Técnica segura
+          </p>
+          <ul className="list-disc space-y-0.5 pl-4 text-xs text-gray-600 dark:text-gray-300">
+            {technique.cues.map((cue) => (
+              <li key={cue}>{cue}</li>
+            ))}
+          </ul>
+          <p className="mb-1.5 mt-3 flex items-center gap-1.5 text-xs font-bold text-red-400">
+            <TriangleAlert size={14} /> Evitá estos errores
+          </p>
+          <ul className="list-disc space-y-0.5 pl-4 text-xs text-gray-600 dark:text-gray-300">
+            {technique.mistakes.map((mistake) => (
+              <li key={mistake}>{mistake}</li>
+            ))}
+          </ul>
+          <p className="mt-3 text-[11px] italic text-amber-500">{technique.safety}</p>
+        </div>
+
         {exercise.description && (
           <p className="text-sm text-gray-600 dark:text-gray-300">{exercise.description}</p>
         )}
@@ -79,10 +105,7 @@ export function ExerciseDetailModal({ exercise, onClose, onToggleFavorite }: Exe
 
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" onClick={() => onToggleFavorite(exercise.id)}>
-            <Star
-              size={16}
-              className={exercise.isFavorite ? 'fill-amber-400 text-amber-400' : ''}
-            />
+            <Star size={16} className={exercise.isFavorite ? 'fill-amber-400 text-amber-400' : ''} />
             {exercise.isFavorite ? 'Quitar de favoritos' : 'Marcar favorito'}
           </Button>
           {exercise.videoUrl && (
