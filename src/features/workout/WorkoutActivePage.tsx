@@ -6,6 +6,7 @@ import {
   History,
   Minus,
   Plus,
+  ShieldCheck,
   Trash2,
   TrendingDown,
   TrendingUp,
@@ -58,6 +59,9 @@ export function WorkoutActivePage() {
   const [showSummary, setShowSummary] = useState(false);
   const [showDiscard, setShowDiscard] = useState(false);
   const [suggestions, setSuggestions] = useState<CoachSuggestion[]>([]);
+  const [techniqueFeeling, setTechniqueFeeling] = useState<
+    "impecable" | "bien" | "costo" | null
+  >(null);
   const [now, setNow] = useState(0);
 
   useEffect(() => {
@@ -99,7 +103,7 @@ export function WorkoutActivePage() {
 
   const handleFinish = async () => {
     await saveSuggestions(suggestions);
-    await finish();
+    await finish(techniqueFeeling ?? undefined);
     toast.success(
       `Entrenamiento guardado: ${completedSets} series · ${volume.toLocaleString()} kg`,
     );
@@ -126,8 +130,14 @@ export function WorkoutActivePage() {
           </Button>
           <Button
             size="sm"
-            onClick={() => {
-              setSuggestions(analyzeSession(active.exercises));
+            onClick={async () => {
+              // AQUÍ ESTÁ EL CAMBIO CLAVE: await para que el coach pueda leer el historial
+              setSuggestions(
+                await analyzeSession(
+                  active.exercises,
+                  techniqueFeeling ?? undefined,
+                ),
+              );
               setShowSummary(true);
             }}
           >
@@ -266,13 +276,79 @@ export function WorkoutActivePage() {
           </div>
         </div>
 
+        {/* BANNER DE TÉCNICA PROMINENTE */}
+        <div className="mb-4 rounded-xl bg-linear-to-r from-amber-500/20 to-orange-500/20 p-4 text-amber-800 dark:from-amber-600/20 dark:to-orange-600/20 dark:text-amber-300">
+          <div className="mb-2 flex items-center gap-2">
+            <ShieldCheck size={20} className="font-bold" />
+            <p className="text-sm font-bold">PRINCIPIO FUNDAMENTAL</p>
+          </div>
+          <p className="text-sm leading-relaxed">
+            <strong>
+              La técnica correcta SIEMPRE está por encima del peso.
+            </strong>{" "}
+            Si hoy no sentiste el movimiento limpio, la próxima sesión
+            mantenemos o bajamos la carga. Tu cuerpo te lo va a agradecer a
+            largo plazo.
+          </p>
+        </div>
+
+        {/* PREGUNTA DE TÉCNICA MEJORADA */}
+        <div className="mb-4 rounded-lg bg-slate-100 p-3 dark:bg-slate-700">
+          <p className="mb-2 text-sm font-bold">
+            ¿Cómo sentiste la técnica hoy?
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setTechniqueFeeling("impecable")}
+              className={`flex-1 rounded-lg border-2 px-2 py-3 text-sm font-semibold transition-all ${
+                techniqueFeeling === "impecable"
+                  ? "border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
+                  : "border-gray-300 bg-white text-gray-600 hover:border-emerald-400 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-300"
+              }`}
+            >
+              😎 Impecable
+              <span className="mt-1 block text-[10px] font-normal opacity-90">
+                Movimiento perfecto
+              </span>
+            </button>
+            <button
+              onClick={() => setTechniqueFeeling("bien")}
+              className={`flex-1 rounded-lg border-2 px-2 py-3 text-sm font-semibold transition-all ${
+                techniqueFeeling === "bien"
+                  ? "border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
+                  : "border-gray-300 bg-white text-gray-600 hover:border-emerald-400 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-300"
+              }`}
+            >
+              🙂 Bien
+              <span className="mt-1 block text-[10px] font-normal opacity-90">
+                Algunas compensaciones
+              </span>
+            </button>
+            <button
+              onClick={() => setTechniqueFeeling("costo")}
+              className={`flex-1 rounded-lg border-2 px-2 py-3 text-sm font-semibold transition-all ${
+                techniqueFeeling === "costo"
+                  ? "border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
+                  : "border-gray-300 bg-white text-gray-600 hover:border-emerald-400 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-300"
+              }`}
+            >
+              😓 Me costó
+              <span className="mt-1 block text-[10px] font-normal opacity-90">
+                Técnica comprometida
+              </span>
+            </button>
+          </div>
+        </div>
+
         {suggestions.length > 0 && (
           <div className="mb-4 flex flex-col gap-2">
-            <p className="text-sm font-bold">El coach sugiere:</p>
+            <p className="text-sm font-bold">
+              El coach sugiere para la próxima:
+            </p>
             {suggestions.map((s) => (
               <div
                 key={s.exerciseId}
-                className="rounded-lg bg-slate-100 p-2 dark:bg-slate-700"
+                className="rounded-lg bg-slate-100 p-2.5 dark:bg-slate-700"
               >
                 <p className="flex items-center gap-1.5 text-xs font-semibold">
                   {s.action === "subir" && (
@@ -289,7 +365,7 @@ export function WorkoutActivePage() {
                     ? "mantener peso"
                     : `${s.deltaKg > 0 ? "+" : ""}${s.deltaKg} kg`}
                 </p>
-                <p className="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-[11px] leading-relaxed text-gray-600 dark:text-gray-300">
                   {s.reason}
                 </p>
               </div>
@@ -307,7 +383,7 @@ export function WorkoutActivePage() {
             Seguir entrenando
           </Button>
           <Button onClick={handleFinish} disabled={completedSets === 0}>
-            Guardar
+            Guardar y terminar
           </Button>
         </div>
       </Modal>

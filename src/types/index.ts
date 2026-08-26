@@ -103,6 +103,7 @@ export interface WorkoutSession {
   energyLevel?: number
   sleepQuality?: number
   bodyWeightKg?: number
+  techniqueFeeling?: 'impecable' | 'bien' | 'costo'
 }
 
 export interface Measurement {

@@ -49,7 +49,7 @@ export const SYSTEM_EXERCISES: Exercise[] = [
   e('Pull over en polea', 'Espalda', 'tiron', 'polea', 'intermedio', [], ['aislamiento']),
   e('Peso muerto', 'Espalda', 'bisagra', 'barra', 'avanzado', ['Isquiotibiales', 'Glúteos', 'Core'], ['compuesto']),
   e('Hiperextensiones', 'Espalda', 'bisagra', 'peso_corporal', 'principiante', ['Glúteos', 'Isquiotibiales'], ['compuesto']),
-  e('Face pull', 'Espalda', 'tiron', 'polea', 'principiante', ['Hombros'], ['aislamiento']),
+  e('Face pull', 'Espalda', 'tiron', 'polea', 'principiante', ['Hombros', 'Trapecio'], ['compuesto']),
   // Hombros
   e('Press militar con barra', 'Hombros', 'empuje', 'barra', 'intermedio', ['Tríceps'], ['compuesto']),
   e('Press militar con mancuernas', 'Hombros', 'empuje', 'mancuernas', 'intermedio', ['Tríceps'], ['compuesto']),
