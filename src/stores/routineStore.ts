@@ -2,8 +2,8 @@ import { create } from "zustand";
 import type { Routine, RoutineDay, RoutineExercise } from "../types";
 import { dbBulkPut, dbDelete, dbGetAll, dbPut } from "../lib/db";
 import { uid } from "../utils/helpers";
-import { TEMPLATES } from "../data/templates";
 import { exerciseId } from "../data/exercises";
+import { TEMPLATES, type TemplateDef } from "../data/templates";
 
 interface RoutineState {
   routines: Routine[];
@@ -12,6 +12,7 @@ interface RoutineState {
   loaded: boolean;
   load: () => Promise<void>;
   createFromTemplate: (templateKey: string) => Promise<Routine>;
+  createFromTemplateDef: (template: TemplateDef) => Promise<Routine>;
   createBlank: (name: string) => Promise<Routine>;
   updateRoutine: (routineId: string, patch: Partial<Routine>) => Promise<void>;
   duplicateRoutine: (routineId: string) => Promise<void>;
@@ -66,6 +67,10 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
   createFromTemplate: async (templateKey) => {
     const template = TEMPLATES.find((t) => t.key === templateKey);
     if (!template) throw new Error("Plantilla no encontrada");
+    return get().createFromTemplateDef(template);
+  },
+
+  createFromTemplateDef: async (template) => {
     const isFirst = get().routines.length === 0;
     const routine: Routine = {
       id: uid(),
