@@ -6,8 +6,8 @@ import { WellnessPage } from "../wellness/WellnessPage";
 
 export function ProgressPage() {
   const [tab, setTab] = useState<
-    "medidas" | "entrenamientos" | "fotos" | "bienestar"
-  >("medidas");
+    "bienestar" | "medidas" | "entrenamientos" | "fotos"
+  >("bienestar");
 
   const tabClass = (active: boolean) =>
     `rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
