@@ -17,6 +17,7 @@ export function ExercisesPage() {
 
   const [query, setQuery] = useState("");
   const [muscle, setMuscle] = useState("Todos");
+  const [equipment, setEquipment] = useState("Todos");
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -33,14 +34,30 @@ export function ExercisesPage() {
     [exercises],
   );
 
+  const equipments = [
+    "Todos",
+    "Barra",
+    "Mancuernas",
+    "Máquina",
+    "Polea",
+    "Peso corporal",
+    "Bandas",
+    "Otro",
+  ];
+
   const filtered = useMemo(
     () =>
       exercises
         .filter((e) => muscle === "Todos" || e.primaryMuscle === muscle)
+        .filter(
+          (e) =>
+            equipment === "Todos" ||
+            e.equipment === equipment.toLowerCase().replace(" ", "_"),
+        )
         .filter((e) => !onlyFavorites || e.isFavorite)
         .filter((e) => e.name.toLowerCase().includes(query.toLowerCase()))
         .sort((a, b) => a.name.localeCompare(b.name)),
-    [exercises, muscle, onlyFavorites, query],
+    [exercises, muscle, equipment, onlyFavorites, query],
   );
 
   const selected = exercises.find((e) => e.id === selectedId) ?? null;
@@ -71,11 +88,22 @@ export function ExercisesPage() {
         <select
           value={muscle}
           onChange={(event) => setMuscle(event.target.value)}
-          className={SELECT_CLASS}
+          className={`${SELECT_CLASS} flex-1`}
         >
           {muscles.map((m) => (
             <option key={m} value={m}>
               {m}
+            </option>
+          ))}
+        </select>
+        <select
+          value={equipment}
+          onChange={(event) => setEquipment(event.target.value)}
+          className={`${SELECT_CLASS} flex-1`}
+        >
+          {equipments.map((eq) => (
+            <option key={eq} value={eq}>
+              {eq}
             </option>
           ))}
         </select>

@@ -96,7 +96,11 @@ interface WorkoutState {
   startRest: (seconds: number) => void;
   extendRest: (seconds: number) => void;
   clearRest: () => void;
-  finish: (techniqueFeeling?: 'impecable' | 'bien' | 'costo') => Promise<void>;
+  finish: (techniqueFeeling?: "impecable" | "bien" | "costo") => Promise<void>;
+  replaceExercise: (
+    oldExerciseId: string,
+    newExerciseId: string,
+  ) => Promise<void>;
 }
 
 async function persist(active: ActiveSession | null) {
@@ -196,8 +200,8 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => {
       const current = get().active;
       if (!current) return;
       const library = useExerciseStore.getState().exercises;
-      const name =
-        library.find((e) => e.id === exerciseId)?.name ?? "Ejercicio";
+      const found = library.find((e) => e.id === exerciseId);
+      const name = found?.name ?? "Ejercicio";
       const next: ActiveSession = {
         ...current,
         exercises: [
@@ -232,6 +236,43 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => {
         ...current,
         exercises: current.exercises.filter((e) => e.id !== activeExerciseId),
       });
+    },
+
+    replaceExercise: async (oldExerciseId: string, newExerciseId: string) => {
+      const current = get().active;
+      if (!current) return;
+
+      const library = useExerciseStore.getState().exercises;
+      const newExData = library.find((e) => e.id === newExerciseId);
+      if (!newExData) return;
+
+      const oldIndex = current.exercises.findIndex(
+        (e) => e.id === oldExerciseId,
+      );
+      if (oldIndex === -1) return;
+
+      const next: ActiveSession = {
+        ...current,
+        exercises: current.exercises.map((ex, idx) => {
+          if (idx !== oldIndex) return ex;
+
+          // Reemplazamos manteniendo la estructura de series pero con nuevo ID
+          return {
+            ...ex,
+            id: uid(), // Nuevo ID de instancia
+            exerciseId: newExData.id,
+            name: newExData.name,
+            sets: ex.sets.map((s) => ({
+              ...s,
+              id: uid(),
+              isCompleted: false,
+              weightKg: 0,
+              reps: 8,
+            })),
+          };
+        }),
+      };
+      await commit(next);
     },
 
     addSet: async (activeExerciseId) => {

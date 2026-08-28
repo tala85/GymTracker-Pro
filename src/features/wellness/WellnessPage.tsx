@@ -64,6 +64,7 @@ function BoolRow({
   onToggle,
   tip,
   emoji,
+  disabled,
 }: {
   icon: ReactNode;
   title: string;
@@ -72,8 +73,10 @@ function BoolRow({
   onToggle: () => void;
   tip?: Tip;
   emoji?: string;
+  disabled?: boolean;
 }) {
   const handleClick = () => {
+    if (disabled) return;
     onToggle();
     if (!done) {
       const messages: Record<string, string[]> = {
@@ -138,11 +141,13 @@ function BoolRow({
       </div>
       <button
         onClick={handleClick}
-        aria-label={title}
+        disabled={disabled}
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
-          done
-            ? "bg-emerald-500 text-white scale-110"
-            : "bg-slate-200 text-gray-500 dark:bg-slate-600"
+          disabled
+            ? "bg-emerald-500 text-white cursor-not-allowed"
+            : done
+              ? "bg-emerald-500 text-white scale-110"
+              : "bg-slate-200 text-gray-500 dark:bg-slate-600"
         }`}
       >
         <Check size={16} />
@@ -167,9 +172,10 @@ export function WellnessPage() {
   }, [load, loadHistory]);
 
   const today = days[todayKey()];
-  const exercisedToday = sessions.some(
-    (s) => s.startedAt.slice(0, 10) === todayKey(),
-  );
+  const exercisedToday = sessions.some((s) => {
+    const sessionDate = s.startedAt.slice(0, 10);
+    return sessionDate === todayKey() && (s.totalVolumeKg ?? 0) > 0;
+  });
 
   const week = useMemo(() => {
     const result: { date: string; score: number }[] = [];
@@ -274,14 +280,15 @@ export function WellnessPage() {
         title="Ejercicio"
         desc={
           exercisedToday
-            ? "¡Entrenaste hoy! Marcado automático"
-            : "Movete al menos 30 minutos"
+            ? "¡Entrenaste hoy! Marcado automático ✅"
+            : "Completá tu rutina de hoy"
         }
         done={exercisedToday || (today?.exerciseManual ?? false)}
         onToggle={() =>
           updateToday({ exerciseManual: !(today?.exerciseManual ?? false) })
         }
         emoji="💪"
+        disabled={exercisedToday}
       />
 
       {/* AGUA CON CONTADOR */}
@@ -327,14 +334,30 @@ export function WellnessPage() {
             onClick={() => {
               const newCount = Math.min(15, (today?.waterGlasses ?? 0) + 1);
               updateToday({ waterGlasses: newCount });
-              if (newCount === WATER_GOAL) {
-                toast.success("¡10 minutos de sol! Energía natural ☀️💪", {
-                  className:
-                    "bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold shadow-xl",
+
+              // Mensajes según el progreso
+              if (newCount === 8) {
+                toast.success("¡8 vasos! Hidratación óptima 💧🎉", {
                   duration: 3500,
                 });
-              } else if (newCount > WATER_GOAL) {
-                toast.success("¡Súper hidratado! ", { duration: 2000 });
+              } else if (newCount === 4) {
+                toast.success("¡Mitad del camino! Solo faltan 4 vasos más 💪", {
+                  duration: 3000,
+                });
+              } else if (newCount === 6) {
+                toast.success("¡Vas muy bien! Ya casi llegás 💧", {
+                  duration: 2500,
+                });
+              } else if (newCount < 8) {
+                const remaining = 8 - newCount;
+                const msgs = [
+                  `¡Bien! Seguís sumando 💧`,
+                  `Cada vaso cuenta 💪`,
+                  `Tu cuerpo te lo agradece 🙏`,
+                  `¡Seguí así! Faltan ${remaining} vasos`,
+                ];
+                const randomMsg = msgs[Math.floor(Math.random() * msgs.length)];
+                toast.success(randomMsg, { duration: 2000 });
               }
             }}
             className="rounded-full bg-emerald-500 p-2 text-white hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/30"

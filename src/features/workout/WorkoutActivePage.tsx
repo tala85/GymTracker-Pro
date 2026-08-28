@@ -6,6 +6,7 @@ import {
   History,
   Minus,
   Plus,
+  Shuffle,
   ShieldCheck,
   Trash2,
   TrendingDown,
@@ -18,6 +19,8 @@ import { analyzeSession, type CoachSuggestion } from "../../utils/coach";
 import { ExercisePickerModal } from "../../components/domain/ExercisePickerModal";
 import { Button } from "../../components/ui/Button";
 import { Modal } from "../../components/ui/Modal";
+import { ReplaceExerciseModal } from "./ReplaceExerciseModal";
+import { useExerciseStore } from "../../stores/exerciseStore";
 
 function MiniInput({
   label,
@@ -54,11 +57,14 @@ export function WorkoutActivePage() {
   const discard = useWorkoutStore((state) => state.discard);
   const finish = useWorkoutStore((state) => state.finish);
   const saveSuggestions = useWorkoutStore((state) => state.saveSuggestions);
-
+  const replaceExercise = useWorkoutStore((state) => state.replaceExercise);
   const [showPicker, setShowPicker] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [showDiscard, setShowDiscard] = useState(false);
   const [suggestions, setSuggestions] = useState<CoachSuggestion[]>([]);
+  const [replaceForExerciseId, setReplaceForExerciseId] = useState<
+    string | null
+  >(null);
   const [techniqueFeeling, setTechniqueFeeling] = useState<
     "impecable" | "bien" | "costo" | null
   >(null);
@@ -168,6 +174,18 @@ export function WorkoutActivePage() {
               >
                 <History size={15} />
               </button>
+
+              <button
+                onClick={() => {
+                  setReplaceForExerciseId(ex.id);
+                }}
+                aria-label="Reemplazar ejercicio"
+                className="rounded p-1.5 text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+                title="No me gusta, dame otro"
+              >
+                <Shuffle size={15} />
+              </button>
+
               <button
                 onClick={() => removeExercise(ex.id)}
                 aria-label="Quitar ejercicio"
@@ -411,6 +429,36 @@ export function WorkoutActivePage() {
           </Button>
         </div>
       </Modal>
+
+      {/* MODAL DE REEMPLAZO */}
+      {replaceForExerciseId &&
+        (() => {
+          const currentEx = active.exercises.find(
+            (e) => e.id === replaceForExerciseId,
+          );
+          if (!currentEx) return null;
+          const libEx = useExerciseStore
+            .getState()
+            .exercises.find(
+              (e: { id: string }) => e.id === currentEx.exerciseId,
+            );
+          return (
+            <ReplaceExerciseModal
+              currentExerciseId={currentEx.exerciseId}
+              currentExerciseName={currentEx.name}
+              primaryMuscle={libEx?.primaryMuscle ?? "Pecho"}
+              movementPattern={libEx?.movementPattern ?? "empuje"}
+              onClose={() => setReplaceForExerciseId(null)}
+              onReplace={(newExerciseId) => {
+                replaceExercise(replaceForExerciseId, newExerciseId);
+                setReplaceForExerciseId(null);
+                toast.success("Ejercicio reemplazado correctamente 💪", {
+                  duration: 2000,
+                });
+              }}
+            />
+          );
+        })()}
     </div>
   );
 }

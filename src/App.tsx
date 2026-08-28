@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import {
-  BrowserRouter,
   Navigate,
   Route,
   Routes,
@@ -57,8 +56,8 @@ export default function App() {
   const theme = useUiStore((state) => state.theme);
 
   return (
-    <BrowserRouter>
-      <Routes>
+    <>
+       <Routes>
         {/* ===== ZONA 1: RUTAS PÚBLICAS (sin sesión) ===== */}
         <Route
           path="/login"
@@ -110,6 +109,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toaster theme={theme} position="top-center" />
-    </BrowserRouter>
+    </>
+    
   );
 }
