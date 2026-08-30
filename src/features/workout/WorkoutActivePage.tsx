@@ -182,7 +182,6 @@ export function WorkoutActivePage() {
 
               <button
                 onClick={() => {
-                  console.log("👁️ Click en ver técnica:", ex.id, ex.name);
                   setTechniqueForExerciseId(ex.id);
                 }}
                 aria-label="Ver técnica"

@@ -25,6 +25,7 @@ import { useInstallPrompt } from "../../hooks/useInstallPrompt";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Modal } from "../../components/ui/Modal";
+import { RemindersSection } from './RemindersSection'
 
 const SELECT_CLASS =
   "rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white";
@@ -113,6 +114,8 @@ export function SettingsPage() {
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold">Configuración</h1>
+
+      <RemindersSection />
 
       <Card className="flex flex-col gap-3">
         <h2 className="text-sm font-bold">Cuenta</h2>

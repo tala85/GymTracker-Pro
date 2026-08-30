@@ -1,10 +1,5 @@
 import type { ReactNode } from "react";
-import {
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-} from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AppLayout } from "./components/common/AppLayout";
 import { Spinner } from "./components/ui/Spinner";
@@ -24,6 +19,7 @@ import { SettingsPage } from "./features/settings/SettingsPage";
 import { useAuthStore } from "./stores/authStore";
 import { useUiStore } from "./stores/uiStore";
 import { AdvisorPage } from "./features/advisor/AdvisorPage";
+import { useReminderScheduler } from "./hooks/useReminderScheduler";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const userId = useAuthStore((state) => state.userId);
@@ -54,10 +50,11 @@ function GuestOnly({ children }: { children: ReactNode }) {
 
 export default function App() {
   const theme = useUiStore((state) => state.theme);
+  useReminderScheduler();
 
   return (
     <>
-       <Routes>
+      <Routes>
         {/* ===== ZONA 1: RUTAS PÚBLICAS (sin sesión) ===== */}
         <Route
           path="/login"
@@ -110,6 +107,5 @@ export default function App() {
       </Routes>
       <Toaster theme={theme} position="top-center" />
     </>
-    
   );
 }

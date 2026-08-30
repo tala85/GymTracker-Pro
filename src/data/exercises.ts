@@ -1,5 +1,4 @@
 import type { Exercise } from "../types";
-import { EXERCISE_MEDIA } from "./exercise-media";
 
 export function exerciseId(name: string): string {
   return `sys-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
@@ -14,8 +13,6 @@ function e(
   secondaryMuscles: string[] = [],
   tags: string[] = [],
 ): Exercise {
-  const media = EXERCISE_MEDIA[name];
-
   return {
     id: exerciseId(name),
     name,
@@ -28,8 +25,6 @@ function e(
     isFavorite: false,
     isSystem: true,
     videoUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(name + " técnica correcta")}`,
-    gifUrl: media?.gifUrl,
-    imageUrl: media?.imageUrl, // <-- AGREGAR ESTE CAMPO
     createdAt: new Date().toISOString(),
   };
 }
@@ -198,7 +193,7 @@ export const SYSTEM_EXERCISES: Exercise[] = [
     "principiante",
     ["Hombros", "Trapecio"],
     ["compuesto"],
-     ),
+  ),
   // Hombros
   e(
     "Press militar con barra",
