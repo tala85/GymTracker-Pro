@@ -25,6 +25,7 @@ export interface Exercise {
   equipment: Equipment
   description?: string
   videoUrl?: string
+  gifUrl?: string
   imageUrl?: string
   difficulty: Difficulty
   tags: string[]

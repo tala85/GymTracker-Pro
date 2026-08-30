@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ExternalLink,
   Link2,
@@ -15,6 +15,7 @@ import { YouTubeEmbed } from "../../components/domain/YouTubeEmbed";
 import { MuscleMap } from "../../components/domain/MuscleMap";
 import { useExerciseStore } from "../../stores/exerciseStore";
 import { getTechnique } from "../../data/technique";
+import { searchExerciseGif, type ExerciseGif } from "../../lib/exercise-gifs-api"; // <-- NUEVO IMPORT
 import {
   DIFFICULTY_LABELS,
   EQUIPMENT_LABELS,
@@ -33,10 +34,26 @@ export function ExerciseDetailModal({
   exercise,
   onClose,
   onToggleFavorite,
-  onPick
+  onPick,
 }: ExerciseDetailModalProps) {
   const updateExercise = useExerciseStore((state) => state.updateExercise);
   const [newVideo, setNewVideo] = useState("");
+  
+  // NUEVO: Estado para el GIF dinámico
+  const [exerciseGif, setExerciseGif] = useState<ExerciseGif | null>(null);
+  const [loadingGif, setLoadingGif] = useState(true);
+
+  // NUEVO: Efecto para buscar el GIF automáticamente
+  useEffect(() => {
+    async function loadGif() {
+      if (!exercise) return;
+      setLoadingGif(true);
+      const gif = await searchExerciseGif(exercise.name);
+      setExerciseGif(gif);
+      setLoadingGif(false);
+    }
+    loadGif();
+  }, [exercise]);
 
   if (!exercise) return null;
 
@@ -82,6 +99,34 @@ export function ExerciseDetailModal({
             {PATTERN_LABELS[exercise.movementPattern] ??
               exercise.movementPattern}
           </span>
+        </div>
+
+        {/* DEMOSTRACIÓN VISUAL (GIF DINÁMICO DESDE API) */}
+        <div className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-600 dark:bg-slate-700">
+          {loadingGif ? (
+            <div className="h-56 w-full flex items-center justify-center bg-white dark:bg-slate-800">
+              <p className="text-sm text-gray-500">Cargando demostración...</p>
+            </div>
+          ) : exerciseGif?.gifUrl ? (
+            <>
+              <img
+                src={exerciseGif.gifUrl}
+                alt={`Demostración de ${exercise.name}`}
+                className="h-56 w-full object-contain bg-white dark:bg-slate-800"
+                loading="lazy"
+              />
+              <p className="bg-slate-200 px-3 py-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-600 dark:text-slate-300">
+                {exerciseGif.name}
+              </p>
+            </>
+          ) : (
+            <div className="h-56 w-full flex items-center justify-center bg-white dark:bg-slate-800">
+              <p className="text-sm text-gray-500 text-center px-4">
+                Sin GIF disponible.<br />
+                Mirá el video de YouTube arriba.
+              </p>
+            </div>
+          )}
         </div>
 
         <MuscleMap
@@ -145,7 +190,6 @@ export function ExerciseDetailModal({
           primaryMuscle={exercise.primaryMuscle}
           movementPattern={exercise.movementPattern}
           onPick={(altId) => {
-            // El componente padre (ExercisesPage) maneja la navegación
             onPick?.(altId);
           }}
         />
@@ -176,6 +220,5 @@ export function ExerciseDetailModal({
         </div>
       </div>
     </Modal>
-    
   );
 }

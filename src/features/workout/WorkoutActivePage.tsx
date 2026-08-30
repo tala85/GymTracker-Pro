@@ -12,6 +12,7 @@ import {
   TrendingDown,
   TrendingUp,
   X,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkoutStore } from "../../stores/workoutStore";
@@ -21,6 +22,7 @@ import { Button } from "../../components/ui/Button";
 import { Modal } from "../../components/ui/Modal";
 import { ReplaceExerciseModal } from "./ReplaceExerciseModal";
 import { useExerciseStore } from "../../stores/exerciseStore";
+import { ExerciseTechniqueModal } from "./ExerciseTechniqueModal";
 
 function MiniInput({
   label,
@@ -58,6 +60,9 @@ export function WorkoutActivePage() {
   const finish = useWorkoutStore((state) => state.finish);
   const saveSuggestions = useWorkoutStore((state) => state.saveSuggestions);
   const replaceExercise = useWorkoutStore((state) => state.replaceExercise);
+  const [techniqueForExerciseId, setTechniqueForExerciseId] = useState<
+    string | null
+  >(null);
   const [showPicker, setShowPicker] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [showDiscard, setShowDiscard] = useState(false);
@@ -173,6 +178,18 @@ export function WorkoutActivePage() {
                 className="rounded p-1.5 text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-700"
               >
                 <History size={15} />
+              </button>
+
+              <button
+                onClick={() => {
+                  console.log("👁️ Click en ver técnica:", ex.id, ex.name);
+                  setTechniqueForExerciseId(ex.id);
+                }}
+                aria-label="Ver técnica"
+                className="rounded p-1.5 text-blue-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+                title="Ver cómo se hace"
+              >
+                <Eye size={15} />
               </button>
 
               <button
@@ -456,6 +473,32 @@ export function WorkoutActivePage() {
                   duration: 2000,
                 });
               }}
+            />
+          );
+        })()}
+
+      {/* MODAL DE TÉCNICA */}
+      {techniqueForExerciseId &&
+        (() => {
+          const currentEx = active.exercises.find(
+            (e) => e.id === techniqueForExerciseId,
+          );
+          if (!currentEx) return null;
+
+          // Buscar el ejercicio completo en la biblioteca
+          const libEx = useExerciseStore
+            .getState()
+            .exercises.find(
+              (e: { id: string }) => e.id === currentEx.exerciseId,
+            );
+
+          return (
+            <ExerciseTechniqueModal
+              exerciseId={techniqueForExerciseId}
+              exerciseName={currentEx.name}
+              primaryMuscle={libEx?.primaryMuscle}
+              movementPattern={libEx?.movementPattern}
+              onClose={() => setTechniqueForExerciseId(null)}
             />
           );
         })()}
