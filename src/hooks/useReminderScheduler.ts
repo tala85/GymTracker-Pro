@@ -7,6 +7,75 @@ import {
   showNotification,
 } from "../lib/notifications";
 
+// ---- Puente con el Service Worker (IndexedDB) ----
+const DB_NAME = "gymtracker-reminder-sync";
+const STORE = "kv";
+
+function openDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function readPayload(): Promise<
+  { settings?: unknown; fired?: Record<string, string> } | undefined
+> {
+  try {
+    const db = await openDb();
+    return await new Promise((resolve) => {
+      const req = db
+        .transaction(STORE, "readonly")
+        .objectStore(STORE)
+        .get("payload");
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(undefined);
+    });
+  } catch {
+    return undefined;
+  }
+}
+
+async function writePayload(payload: {
+  settings: unknown;
+  fired: Record<string, string>;
+}) {
+  try {
+    const db = await openDb();
+    await new Promise((resolve) => {
+      const tx = db.transaction(STORE, "readwrite");
+      tx.objectStore(STORE).put(payload, "payload");
+      tx.oncomplete = resolve;
+      tx.onerror = resolve;
+    });
+  } catch {
+    /* silencio */
+  }
+}
+
+async function registerPeriodicSync() {
+  try {
+    if (!("serviceWorker" in navigator)) return;
+    const registration = await navigator.serviceWorker.ready;
+    if (!("periodicSync" in registration)) return;
+    const status = await navigator.permissions.query({
+      name: "periodic-background-sync" as PermissionName,
+    });
+    if (status.state !== "granted") return;
+    await (
+      registration as unknown as {
+        periodicSync: {
+          register: (tag: string, opts: object) => Promise<void>;
+        };
+      }
+    ).periodicSync.register("reminders-sync", { minInterval: 60 * 60 * 1000 });
+  } catch {
+    /* silencio */
+  }
+}
+
 interface TimeReminder {
   key: string;
   enabled: boolean;
@@ -19,6 +88,17 @@ interface TimeReminder {
 export function useReminderScheduler() {
   const settings = useReminderStore((state) => state.settings);
   const lastFired = useRef<Record<string, string>>({});
+
+  // Sincroniza la configuración con el SW y registra el sync periódico
+  useEffect(() => {
+    (async () => {
+      const prev = await readPayload();
+      console.log('[app] escribiendo payload en IndexedDB…')
+      await writePayload({ settings, fired: prev?.fired ?? {} });
+      console.log('[app] payload escrito ✅')
+    })();
+    registerPeriodicSync();
+  }, [settings]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -36,6 +116,15 @@ export function useReminderScheduler() {
         lastFired.current[fullKey] = hhmm;
         showNotification(title, body);
         toast.info(title, { description: body, duration: 8000 });
+
+        // Marca el aviso en IndexedDB para que el SW no lo duplique
+        (async () => {
+          const prev = await readPayload();
+          await writePayload({
+            settings: prev?.settings ?? settings,
+            fired: { ...(prev?.fired ?? {}), [key]: dayKey },
+          });
+        })();
       };
 
       const nutritionPhrase = getRandomPhrase("nutricion");

@@ -13,6 +13,9 @@ export default defineConfig({
         enabled: true,
         type: "module",
       },
+      strategies: "injectManifest", // ← NUEVO
+      srcDir: "src", // ← NUEVO
+      filename: "sw.js", // ← NUEVO
       includeAssets: ["favicon.svg"],
       manifest: {
         name: "GymTracker Pro",
